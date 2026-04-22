@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI × CJM — The Future of Customer Journeys</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<!--
+  Standard 16:9 slide canvas (1280×720), auto-scales to viewport.
+  Nav: arrow keys / space · F11 fullscreen · Cmd+P → PDF
+-->
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#fafbff;
+    --bg-soft:#eef0fa;
+    --surface:#ffffff;
+    --primary:#7c3aed;
+    --primary-soft:rgba(124,58,237,.08);
+    --accent:#06b6d4;
+    --accent-soft:rgba(6,182,212,.1);
+    --success:#10b981;
+    --success-soft:rgba(16,185,129,.1);
+    --danger:#ef4444;
+    --danger-soft:rgba(239,68,68,.08);
+    --text:#0a0a1a;
+    --text-soft:#1e1b3a;
+    --muted:#6b7280;
+    --border:rgba(20,10,50,0.08);
+    --shadow-sm:0 1px 3px rgba(20,10,60,0.06),0 1px 2px rgba(20,10,60,0.04);
+    --shadow:0 8px 24px rgba(20,10,60,0.06),0 2px 6px rgba(20,10,60,0.04);
+
+    --canvas-w:1280px;
+    --canvas-h:720px;
+    --pad-x:64px;
+    --pad-y:56px;
+  }
+  html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body::before{
+    content:'';position:fixed;inset:0;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(124,58,237,0.10), transparent 50%),
+      radial-gradient(circle at 80% 85%, rgba(6,182,212,0.08), transparent 55%);
+    pointer-events:none;z-index:0;
+  }
+
+  .stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1}
+  .deck{
+    position:relative;
+    width:var(--canvas-w);height:var(--canvas-h);
+    transform:scale(var(--scale,1));
+    transform-origin:center center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    padding:var(--pad-y) var(--pad-x);
+    display:flex;flex-direction:column;justify-content:center;
+    opacity:0;visibility:hidden;
+    transform:translateX(30px);
+    transition:opacity .45s ease,transform .45s ease,visibility .45s;
+    overflow:hidden;
+    border-radius:4px;
+  }
+  .slide.active{opacity:1;visibility:visible;transform:translateX(0)}
+
+  .eyebrow{
+    display:inline-block;font-family:'Space Grotesk',sans-serif;
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--primary);margin-bottom:16px;font-weight:700;
+    padding:6px 14px;background:var(--primary-soft);border-radius:99px;
+    align-self:flex-start;
+  }
+  h1{font-size:68px;font-weight:900;line-height:1.04;letter-spacing:-.02em;color:var(--text)}
+  h2{font-size:46px;font-weight:800;line-height:1.08;letter-spacing:-.015em;margin-bottom:18px;color:var(--text)}
+  h3{font-size:18px;font-weight:700;margin-bottom:4px;color:var(--text)}
+  p{font-size:15px;color:var(--muted);line-height:1.55}
+  .lead{font-size:17px;color:var(--text-soft);line-height:1.5}
+  .gradient-text{background:linear-gradient(120deg,var(--primary) 0%,var(--accent) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block}
+
+  /* Title */
+  .title-slide{text-align:center;align-items:center;justify-content:center}
+  .title-slide h1{margin-bottom:20px;font-size:76px}
+  .title-slide .sub{font-size:20px;color:var(--muted);margin-bottom:28px;line-height:1.4;max-width:760px}
+  .title-slide .case-tag{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--surface);border:1px solid var(--border);border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:14px;color:var(--primary);font-weight:700;box-shadow:var(--shadow-sm)}
+  .case-tag::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+
+  /* Layouts */
+  .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center;flex:1}
+  .grid-2-wide{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;align-items:center;flex:1}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:16px;box-shadow:var(--shadow-sm);
+    position:relative;overflow:hidden;
+  }
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent))}
+  .card .icon{font-size:24px;margin-bottom:6px;display:block;line-height:1}
+
+  /* Old vs New */
+  .vs-table{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;flex:1;align-content:start}
+  .vs-col{padding:20px;border-radius:14px;border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+  .vs-col.old{background:linear-gradient(135deg,#fff,var(--danger-soft));border-color:rgba(239,68,68,.2)}
+  .vs-col.new{background:linear-gradient(135deg,#fff,var(--accent-soft));border-color:rgba(6,182,212,.25)}
+  .vs-col h3{font-family:'Space Grotesk',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.2em;margin-bottom:14px;font-weight:700}
+  .vs-col.old h3{color:var(--danger)}
+  .vs-col.new h3{color:var(--accent)}
+  .vs-list{list-style:none;display:grid;gap:8px}
+  .vs-list li{display:flex;gap:8px;align-items:start;font-size:14px;color:var(--text);line-height:1.4}
+  .vs-list li::before{content:'';width:5px;height:5px;border-radius:50%;margin-top:8px;flex-shrink:0}
+  .vs-col.old .vs-list li::before{background:var(--danger)}
+  .vs-col.new .vs-list li::before{background:var(--accent)}
+
+  /* Stage detail */
+  .stage-detail{display:grid;grid-template-columns:1.35fr 1fr;gap:36px;align-items:center;flex:1}
+  .ai-box{
+    background:linear-gradient(135deg,var(--primary-soft),var(--accent-soft));
+    border:1px solid var(--primary);border-radius:12px;padding:14px 16px;margin-top:14px;
+    position:relative;
+  }
+  .ai-box::before{content:'🤖 AI POWER';position:absolute;top:-10px;left:14px;background:var(--surface);padding:2px 8px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:.18em;color:var(--primary);border:1px solid var(--primary);border-radius:99px;font-weight:700}
+  .ai-box .a-label{font-weight:700;font-size:14px;margin-bottom:4px;color:var(--text)}
+  .ai-box p{color:var(--text-soft);font-size:13px;line-height:1.45}
+  .ai-box .examples{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .ai-box .examples span{font-size:11px;padding:3px 8px;background:var(--surface);border-radius:99px;color:var(--text-soft);font-family:'Space Grotesk',sans-serif;font-weight:600;border:1px solid var(--border)}
+
+  /* GIF */
+  .gif-frame{
+    background:var(--bg-soft);border:1px solid var(--border);border-radius:14px;
+    overflow:hidden;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+    position:relative;box-shadow:var(--shadow);width:100%;
+  }
+  .gif-frame img{width:100%;height:100%;object-fit:cover;display:block}
+  .gif-frame::after{
+    content:'GIF';position:absolute;bottom:6px;right:6px;
+    background:rgba(255,255,255,.9);padding:2px 6px;border-radius:5px;
+    font-size:8px;letter-spacing:.18em;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-weight:700;
+    backdrop-filter:blur(6px);
+  }
+
+  /* Lessons */
+  .lesson-list{display:grid;gap:10px;margin-top:14px}
+  .lesson{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;border-left:3px solid var(--primary);box-shadow:var(--shadow-sm)}
+  .lesson .num{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+  .lesson h3{font-size:15px;margin-bottom:2px}
+  .lesson p{font-size:12px;line-height:1.4}
+
+  /* Risks */
+  .risk-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:0}
+  .risk-card{background:var(--surface);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:12px 16px;border-left:3px solid var(--danger);box-shadow:var(--shadow-sm);display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+  .risk-card .r-icon{font-size:28px;line-height:1}
+  .risk-card h3{color:var(--danger);font-size:14px;margin-bottom:1px}
+  .risk-card p{color:var(--text-soft);font-size:12px;line-height:1.4}
+
+  /* Marathon AI table */
+  .marathon-table{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+  .mt-row{display:grid;grid-template-columns:1fr 1.5fr 1.5fr;border-bottom:1px solid var(--border);align-items:center}
+  .mt-row:last-child{border-bottom:none}
+  .mt-row.head{background:var(--primary-soft);font-family:'Space Grotesk',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:var(--primary);font-weight:700}
+  .mt-row > div{padding:10px 14px;font-size:12.5px;line-height:1.35}
+  .mt-row .what{font-weight:700;color:var(--text)}
+  .mt-row .now{color:var(--muted);border-left:1px solid var(--border)}
+  .mt-row .future{color:var(--text);border-left:1px solid var(--border);background:linear-gradient(90deg,var(--accent-soft),transparent);font-weight:500}
+
+  /* Big quote */
+  .big-quote{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:500;line-height:1.45;text-align:center;padding:16px 24px;border-left:3px solid var(--accent);background:linear-gradient(135deg,var(--accent-soft),transparent);border-radius:12px;margin-top:14px;font-style:italic;color:var(--text)}
+  .big-quote .who{display:block;margin-top:8px;font-size:10px;color:var(--muted);font-style:normal;letter-spacing:.15em;text-transform:uppercase;font-weight:700}
+
+  /* Viewport UI */
+  .controls{
+    position:fixed;bottom:14px;right:20px;z-index:100;
+    display:flex;align-items:center;gap:4px;
+    background:var(--surface);backdrop-filter:blur(10px);
+    padding:4px;border-radius:99px;border:1px solid var(--border);box-shadow:var(--shadow);
+  }
+  .controls button{
+    width:32px;height:32px;border-radius:50%;border:none;
+    background:transparent;color:var(--text);font-size:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:all .2s;
+  }
+  .controls button:hover{background:var(--primary);color:#fff}
+  .counter{font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--muted);padding:0 10px;min-width:54px;text-align:center;font-weight:700}
+
+  .progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent));z-index:100;transition:width .4s ease}
+  .watermark{position:fixed;bottom:18px;left:20px;font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--muted);letter-spacing:.22em;text-transform:uppercase;z-index:50;font-weight:600}
+
+  .ai-emoji{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;font-size:1.2em}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="watermark">AI × CJM · Future Journeys</div>
+
+<div class="stage">
+  <div class="deck" id="deck">
+
+  <!-- ========== SLIDE 1: TITLE ========== -->
+  <section class="slide active title-slide">
+    <span class="eyebrow" style="align-self:center">Presentation 2 of 2</span>
+    <h1>🤖 AI × CJM<br><span class="gradient-text">The Future of<br>Customer Journeys</span></h1>
+    <p class="sub">How artificial intelligence will change every step of the customer experience</p>
+    <div class="case-tag">CJM × AI · 10 min talk</div>
+  </section>
+
+  <!-- ========== SLIDE 2: OLD vs NEW ========== -->
+  <section class="slide">
+    <span class="eyebrow">Chapter 01 — The shift</span>
+    <h2>The CJM is <span class="gradient-text">not a poster anymore</span></h2>
+    <p class="lead" style="margin-bottom:4px">Old way: a static map drawn once a year. New way: a living system that learns and updates itself in real time.</p>
+    <div class="vs-table">
+      <div class="vs-col old">
+        <h3>❌ Old CJM (yesterday)</h3>
+        <ul class="vs-list">
+          <li>Made once, stays the same</li>
+          <li>Same path for every customer</li>
+          <li>Built from guesses + interviews</li>
+          <li>Updated once a year, maybe</li>
+          <li>Lives in a Miro board nobody opens</li>
+        </ul>
+      </div>
+      <div class="vs-col new">
+        <h3>✅ New CJM (with AI)</h3>
+        <ul class="vs-list">
+          <li>Updates itself every second</li>
+          <li>Personal path for each person</li>
+          <li>Built from real behavior data</li>
+          <li>Learns from every click</li>
+          <li>Drives real decisions live</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 3: 3 WAYS AI CHANGES CJM ========== -->
+  <section class="slide">
+    <span class="eyebrow">Chapter 02 — Three superpowers</span>
+    <h2>3 ways AI is <span class="gradient-text">rewriting</span> the journey</h2>
+    <div class="grid-2">
+      <div>
+        <div style="display:grid;gap:10px;margin-top:4px">
+          <div class="card"><span class="icon">🎯</span><h3>Personalization</h3><p>Every customer sees a different version — copy, timing, offer, even the bot's tone.</p></div>
+          <div class="card"><span class="icon">🔮</span><h3>Prediction</h3><p>AI knows who will buy, who will quit, who needs a push — before they decide.</p></div>
+          <div class="card"><span class="icon">⚙️</span><h3>Automation</h3><p>Messages, offers, follow-ups — written and sent by AI, 24/7.</p></div>
+        </div>
+      </div>
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/cU3AxItra3OtwdjFzP/giphy.gif" alt="AI robot">
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 4: AI IN AWARENESS ========== -->
+  <section class="slide">
+    <span class="eyebrow">Stage 01 — 👀 Awareness</span>
+    <h2>AI finds <span class="gradient-text">your future customer</span></h2>
+    <div class="stage-detail">
+      <div>
+        <p class="lead">Old: you set ad targeting by hand — age, city, interests. Pray it works.</p>
+        <p style="margin-top:6px;color:var(--text-soft);font-size:15px">New: AI tests <strong style="color:var(--primary)">10,000 ad variations</strong> in 24 hours. It finds the exact face, headline and emotion that makes your buyer click.</p>
+        <div class="ai-box">
+          <div class="a-label">What AI does in this stage:</div>
+          <p>Generates ad copy + images, picks the best audience, allocates budget per platform — in real time.</p>
+          <div class="examples">
+            <span>Meta Advantage+</span><span>Google Performance Max</span><span>Midjourney</span>
+          </div>
+        </div>
+      </div>
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/5DJo7xxhP5tsyxldM9/giphy.gif" alt="Targeting">
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 5: AI IN CONSIDERATION ========== -->
+  <section class="slide">
+    <span class="eyebrow">Stage 02 — 🤔 Consideration</span>
+    <h2>The bot becomes <span class="gradient-text">a friend</span></h2>
+    <div class="stage-detail">
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/3o8doZFy4iPd8VBL8I/giphy.gif" alt="Chatbot">
+      </div>
+      <div>
+        <p class="lead">Today's bots follow a script. Tomorrow's bot <strong style="color:var(--primary)">talks like a real human</strong>, remembers what you said yesterday, and answers questions about your specific goals.</p>
+        <div class="ai-box">
+          <div class="a-label">What AI does in this stage:</div>
+          <p>LLM-powered chat, real-time Q&A, personalized recommendations ("based on what you said, try the Safety Manager track").</p>
+          <div class="examples">
+            <span>GPT-4 / Claude</span><span>RAG over lessons</span><span>Voice replies</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 6: AI IN DECISION ========== -->
+  <section class="slide">
+    <span class="eyebrow">Stage 03 — 💪 Decision</span>
+    <h2>AI predicts <span class="gradient-text">who will buy</span></h2>
+    <div class="stage-detail">
+      <div>
+        <p class="lead">AI looks at how you behaved — how fast you watched, where you paused, what tasks you got right.</p>
+        <p style="margin-top:6px;color:var(--text-soft);font-size:15px">It scores you: <strong style="color:var(--accent)">"87% chance to buy in 3 days"</strong>. Sales focuses on hot leads. Bot sends a different path to cold ones.</p>
+        <div class="ai-box">
+          <div class="a-label">What AI does in this stage:</div>
+          <p>Lead scoring, churn prediction, decides best time + best message + best channel for each person.</p>
+          <div class="examples">
+            <span>Predictive scoring</span><span>Behavioral analytics</span><span>Send-time optimization</span>
+          </div>
+        </div>
+      </div>
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/3o72F5tx9CEhSDxonC/giphy.gif" alt="Crystal ball">
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 7: AI IN ACTION ========== -->
+  <section class="slide">
+    <span class="eyebrow">Stage 04 — 💳 Action</span>
+    <h2>Every offer is <span class="gradient-text">different</span></h2>
+    <div class="stage-detail">
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/NsBdKKJmZC84ZXyXIo/giphy.gif" alt="Gift wrapped">
+      </div>
+      <div>
+        <p class="lead">Old: everyone gets the same 15% discount. New: AI decides the <strong style="color:var(--primary)">perfect offer</strong> for each person.</p>
+        <p style="margin-top:6px;color:var(--text-soft);font-size:15px">One user gets 15% off. Another hesitant user gets <strong style="color:var(--accent)">20% + a 3-month payment plan</strong>. A price-sensitive student gets a scholarship application.</p>
+        <div class="ai-box">
+          <div class="a-label">What AI does in this stage:</div>
+          <p>Dynamic pricing, personalized bundles, smart upsells, real-time A/B testing of checkout copy.</p>
+          <div class="examples">
+            <span>Dynamic pricing</span><span>Personalized bundles</span><span>Smart upsell timing</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 8: AI IN LOYALTY ========== -->
+  <section class="slide">
+    <span class="eyebrow">Stage 05 — ❤️ Loyalty</span>
+    <h2>AI keeps <span class="gradient-text">customers from leaving</span></h2>
+    <div class="stage-detail">
+      <div>
+        <p class="lead">AI watches every action after the purchase. Did you log in? Did you finish Module 2? Did you stop replying?</p>
+        <p style="margin-top:6px;color:var(--text-soft);font-size:15px">If risk goes up, AI sends a personal message <strong style="color:var(--primary)">before</strong> you cancel. It also spots future ambassadors and gives them VIP treatment.</p>
+        <div class="ai-box">
+          <div class="a-label">What AI does in this stage:</div>
+          <p>Churn prediction, auto-retention messages, find future ambassadors, personalized referral incentives.</p>
+          <div class="examples">
+            <span>Churn scoring</span><span>Win-back AI</span><span>NPS analysis</span>
+          </div>
+        </div>
+      </div>
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/VduFvPwm3gfGO8duNN/giphy.gif" alt="Hug friends">
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 9: MARATHON CASE WITH AI ========== -->
+  <section class="slide">
+    <span class="eyebrow">Chapter 03 — Applied example</span>
+    <h2>Real case: <span class="gradient-text">journey</span> + AI</h2>
+    <p class="lead" style="margin-bottom:4px">Taking one real funnel and adding AI to every stage — here's what changes:</p>
+    <div class="marathon-table">
+      <div class="mt-row head">
+        <div>What</div>
+        <div>Today (rule-based)</div>
+        <div>Tomorrow (AI-powered)</div>
+      </div>
+      <div class="mt-row">
+        <div class="what">Nurture timing</div>
+        <div class="now">Fixed: 6h, 12h, 20h</div>
+        <div class="future">AI picks the best minute for each person</div>
+      </div>
+      <div class="mt-row">
+        <div class="what">Lesson recap</div>
+        <div class="now">Same text for everyone</div>
+        <div class="future">AI writes it based on your weak spots</div>
+      </div>
+      <div class="mt-row">
+        <div class="what">Testimonial shown</div>
+        <div class="now">One quote, hand-picked</div>
+        <div class="future">AI shows the testimonial closest to your story</div>
+      </div>
+      <div class="mt-row">
+        <div class="what">Discount offered</div>
+        <div class="now">15% for everyone</div>
+        <div class="future">AI sets the exact offer that maximizes purchase</div>
+      </div>
+      <div class="mt-row">
+        <div class="what">Drop-off recovery</div>
+        <div class="now">Lose a life after 24h</div>
+        <div class="future">AI sends a perfectly-timed personal message</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 10: RISKS ========== -->
+  <section class="slide">
+    <span class="eyebrow">Chapter 04 — Be careful</span>
+    <h2>AI is not <span class="gradient-text">magic</span> — risks & limits</h2>
+    <div class="stage-detail">
+      <div>
+        <div class="risk-grid">
+          <div class="risk-card"><div class="r-icon">🎭</div><div><h3>No empathy = fake</h3><p>If AI sounds robotic, customers leave faster. The human touch still wins.</p></div></div>
+          <div class="risk-card"><div class="r-icon">🔒</div><div><h3>Privacy & trust</h3><p>Tracking every click is powerful — and scary. Be transparent or lose trust forever.</p></div></div>
+          <div class="risk-card"><div class="r-icon">⚙️</div><div><h3>Over-automation</h3><p>If everything is automated, no one notices when something breaks. Keep humans in the loop.</p></div></div>
+        </div>
+      </div>
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/vuP4lZB1bpTq2FY5WF/giphy.gif" alt="Robot fail">
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 11: TAKE-AWAYS ========== -->
+  <section class="slide">
+    <span class="eyebrow">Chapter 05 — Final thoughts</span>
+    <h2>What to <span class="gradient-text">remember</span></h2>
+    <div class="grid-2">
+      <div>
+        <div class="lesson-list">
+          <div class="lesson"><div class="num">01</div><div><h3>CJM is alive now</h3><p>It's not a poster — it's a real-time system that updates with every action.</p></div></div>
+          <div class="lesson"><div class="num">02</div><div><h3>Personal beats general</h3><p>One offer for everyone is dead. AI gives every customer their own journey.</p></div></div>
+          <div class="lesson"><div class="num">03</div><div><h3>Humans + AI win</h3><p>AI does the math. Humans bring the soul. Use both — or lose to those who do.</p></div></div>
+        </div>
+        <div class="big-quote">
+          "In 5 years, every customer journey will be designed by AI — but the brands that win will still feel human."
+          <span class="who">— The future, probably</span>
+        </div>
+      </div>
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/nYm4uEVv5m6clbVDKR/giphy.gif" alt="Rocket">
+      </div>
+    </div>
+  </section>
+
+  </div>
+</div>
+
+<div class="controls">
+  <button id="prev" title="Previous (←)">←</button>
+  <span class="counter" id="counter">1 / 11</span>
+  <button id="next" title="Next (→)">→</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  let current = 0;
+  const total = slides.length;
+
+  function show(i){
+    if(i<0||i>=total) return;
+    slides[current].classList.remove('active');
+    current = i;
+    slides[current].classList.add('active');
+    counter.textContent = `${current+1} / ${total}`;
+    progress.style.width = `${((current+1)/total)*100}%`;
+  }
+
+  function fit(){
+    const pad = 8;
+    const s = Math.min(
+      (window.innerWidth - pad) / 1280,
+      (window.innerHeight - pad) / 720
+    );
+    document.documentElement.style.setProperty('--scale', s);
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  document.getElementById('prev').addEventListener('click',()=>show(current-1));
+  document.getElementById('next').addEventListener('click',()=>show(current+1));
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown') show(current+1);
+    if(e.key==='ArrowLeft'||e.key==='PageUp') show(current-1);
+    if(e.key==='Home') show(0);
+    if(e.key==='End') show(total-1);
+  });
+
+  progress.style.width = `${(1/total)*100}%`;
+</script>
+
+</body>
+</html>

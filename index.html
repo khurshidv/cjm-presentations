@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CJM Presentations</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#f7f8fc;
+    --surface:#ffffff;
+    --primary:#0066ff;
+    --accent:#ff2d75;
+    --ai-primary:#7c3aed;
+    --ai-accent:#06b6d4;
+    --text:#0a0a0a;
+    --muted:#6b7280;
+    --border:rgba(10,10,30,0.08);
+    --shadow:0 8px 24px rgba(10,10,40,0.06),0 2px 6px rgba(10,10,40,0.04);
+    --shadow-lg:0 24px 60px rgba(10,10,40,0.10),0 8px 20px rgba(10,10,40,0.06);
+  }
+  html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{padding:80px 24px;display:flex;flex-direction:column;align-items:center;position:relative}
+  body::before{
+    content:'';position:fixed;inset:0;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(0,102,255,0.08), transparent 50%),
+      radial-gradient(circle at 85% 90%, rgba(124,58,237,0.06), transparent 55%);
+    pointer-events:none;z-index:0;
+  }
+  .wrap{position:relative;z-index:1;max-width:960px;width:100%}
+  .eyebrow{
+    display:inline-block;font-family:'Space Grotesk',sans-serif;
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--primary);font-weight:700;
+    padding:6px 14px;background:rgba(0,102,255,.08);border-radius:99px;
+    margin-bottom:20px;
+  }
+  h1{font-size:56px;font-weight:900;line-height:1.05;letter-spacing:-.02em;margin-bottom:16px}
+  .gradient{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block}
+  .lead{font-size:19px;color:var(--muted);line-height:1.55;max-width:620px;margin-bottom:48px}
+
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;margin-top:16px}
+  @media (max-width:720px){.cards{grid-template-columns:1fr}h1{font-size:40px}body{padding:60px 20px}}
+
+  .preso-card{
+    display:block;text-decoration:none;color:inherit;
+    background:var(--surface);border:1px solid var(--border);border-radius:20px;
+    padding:32px;box-shadow:var(--shadow);
+    transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+    position:relative;overflow:hidden;
+  }
+  .preso-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:4px;
+    background:linear-gradient(90deg,var(--c1,var(--primary)),var(--c2,var(--accent)));
+  }
+  .preso-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:var(--c1,var(--primary))}
+  .preso-card.ai{--c1:var(--ai-primary);--c2:var(--ai-accent)}
+  .preso-card .number{font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:12px}
+  .preso-card h2{font-size:26px;font-weight:800;line-height:1.15;letter-spacing:-.01em;margin-bottom:12px}
+  .preso-card p{font-size:15px;color:var(--muted);line-height:1.55;margin-bottom:24px}
+  .preso-card .meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+  .preso-card .chip{font-size:11px;padding:4px 10px;background:rgba(0,0,0,.04);border-radius:99px;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-weight:600}
+  .preso-card .cta{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--c1,var(--primary))}
+  .preso-card .cta::after{content:'→';transition:transform .2s}
+  .preso-card:hover .cta::after{transform:translateX(4px)}
+
+  .footer{margin-top:60px;font-size:13px;color:var(--muted);text-align:center}
+  .footer a{color:var(--primary);text-decoration:none;font-weight:600}
+  .footer a:hover{text-decoration:underline}
+
+  .hint{margin-top:12px;font-size:13px;color:var(--muted);text-align:center;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow)}
+  .hint kbd{font-family:'Space Grotesk',sans-serif;padding:2px 8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">CJM Talk · 2 presentations · ~20 min total</span>
+  <h1>Customer Journey Map <span class="gradient">+ the Future with AI</span></h1>
+  <p class="lead">Two short talks: first on CJM as a methodology — what it is, how to build one, and why it changes business decisions. Second on how AI is rewriting every stage of the customer journey.</p>
+
+  <div class="cards">
+    <a class="preso-card" href="presentation-1-cjm.html">
+      <div class="number">Presentation 1 · 12 slides</div>
+      <h2>Customer Journey Map <br>— Methodology</h2>
+      <p>Definition, anatomy, the 5 stages, how to build one, key take-aways. No product demo — pure framework.</p>
+      <div class="meta">
+        <span class="chip">~10 min</span>
+        <span class="chip">12 slides</span>
+        <span class="chip">Framework</span>
+      </div>
+      <span class="cta">Open presentation</span>
+    </a>
+
+    <a class="preso-card ai" href="presentation-2-ai-cjm.html">
+      <div class="number">Presentation 2 · 11 slides</div>
+      <h2>AI × CJM <br>— The Future of Journeys</h2>
+      <p>How AI changes every stage — from ad targeting to churn prevention. Old CJM vs new, real examples, risks.</p>
+      <div class="meta">
+        <span class="chip">~10 min</span>
+        <span class="chip">11 slides</span>
+        <span class="chip">AI</span>
+      </div>
+      <span class="cta">Open presentation</span>
+    </a>
+  </div>
+
+  <div class="hint" style="margin-top:40px">
+    Navigate slides with <kbd>→</kbd> <kbd>←</kbd> or <kbd>Space</kbd> · Press <kbd>F11</kbd> for fullscreen · <kbd>Cmd/Ctrl + P</kbd> to export as PDF
+  </div>
+</div>
+</body>
+</html>

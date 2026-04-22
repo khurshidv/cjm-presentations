@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Journey Map — Methodology</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<!--
+  Standard 16:9 slide canvas (1280×720), auto-scales to viewport.
+  Nav: arrow keys / space · F11 fullscreen · Cmd+P → PDF
+-->
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#f7f8fc;
+    --bg-soft:#eef0f7;
+    --surface:#ffffff;
+    --primary:#0066ff;
+    --primary-soft:rgba(0,102,255,.08);
+    --accent:#ff2d75;
+    --accent-soft:rgba(255,45,117,.08);
+    --success:#00b87a;
+    --success-soft:rgba(0,184,122,.1);
+    --text:#0a0a0a;
+    --text-soft:#1a1a2e;
+    --muted:#6b7280;
+    --border:rgba(10,10,30,0.08);
+    --shadow-sm:0 1px 3px rgba(10,10,40,0.06),0 1px 2px rgba(10,10,40,0.04);
+    --shadow:0 8px 24px rgba(10,10,40,0.06),0 2px 6px rgba(10,10,40,0.04);
+
+    /* Canvas & grid */
+    --canvas-w:1280px;
+    --canvas-h:720px;
+    --pad-x:64px;
+    --pad-y:56px;
+  }
+  html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body::before{
+    content:'';position:fixed;inset:0;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(0,102,255,0.08), transparent 50%),
+      radial-gradient(circle at 85% 90%, rgba(255,45,117,0.06), transparent 55%);
+    pointer-events:none;z-index:0;
+  }
+
+  /* === Stage & scaled deck === */
+  .stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1}
+  .deck{
+    position:relative;
+    width:var(--canvas-w);height:var(--canvas-h);
+    transform:scale(var(--scale,1));
+    transform-origin:center center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    padding:var(--pad-y) var(--pad-x);
+    display:flex;flex-direction:column;justify-content:center;
+    opacity:0;visibility:hidden;
+    transform:translateX(30px);
+    transition:opacity .45s ease,transform .45s ease,visibility .45s;
+    overflow:hidden;
+    border-radius:4px;
+  }
+  .slide.active{opacity:1;visibility:visible;transform:translateX(0)}
+
+  /* === Typography (fixed px, scaled with deck) === */
+  .eyebrow{
+    display:inline-block;font-family:'Space Grotesk',sans-serif;
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--primary);margin-bottom:16px;font-weight:700;
+    padding:6px 14px;background:var(--primary-soft);border-radius:99px;
+    align-self:flex-start;
+  }
+  h1{font-size:68px;font-weight:900;line-height:1.04;letter-spacing:-.02em;color:var(--text)}
+  h2{font-size:46px;font-weight:800;line-height:1.08;letter-spacing:-.015em;margin-bottom:18px;color:var(--text)}
+  h3{font-size:18px;font-weight:700;margin-bottom:4px;color:var(--text)}
+  p{font-size:15px;color:var(--muted);line-height:1.55}
+  .lead{font-size:17px;color:var(--text-soft);line-height:1.5}
+  .gradient-text{background:linear-gradient(120deg,var(--primary) 0%,var(--accent) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block}
+
+  /* === Title slide === */
+  .title-slide{text-align:center;align-items:center;justify-content:center}
+  .title-slide h1{margin-bottom:20px;font-size:76px}
+  .title-slide .sub{font-size:20px;color:var(--muted);margin-bottom:28px;line-height:1.4;max-width:720px}
+  .title-slide .case-tag{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--surface);border:1px solid var(--border);border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:14px;color:var(--primary);font-weight:700;box-shadow:var(--shadow-sm)}
+  .case-tag::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success)}
+
+  /* === Layouts === */
+  .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center;flex:1}
+  .grid-2-wide{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;align-items:center;flex:1}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:16px;box-shadow:var(--shadow-sm);
+  }
+  .card .icon{font-size:24px;margin-bottom:6px;display:block;line-height:1}
+
+  /* Stages overview row */
+  .stages{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:20px}
+  .stage-cell{
+    background:var(--surface);border:1px solid var(--border);
+    padding:16px 12px;border-radius:12px;text-align:center;position:relative;
+    box-shadow:var(--shadow-sm);
+  }
+  .stage-cell .num{font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--primary);letter-spacing:.18em;font-weight:700}
+  .stage-cell .emoji{font-size:28px;margin:6px 0 4px;line-height:1}
+  .stage-cell .name{font-weight:700;font-size:15px;color:var(--text)}
+  .stage-cell .one-liner{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.3}
+  .stage-cell:not(:last-child)::after{content:'→';position:absolute;right:-9px;top:50%;transform:translateY(-50%);color:var(--primary);font-weight:700;z-index:2;font-size:16px}
+
+  /* Anatomy layers */
+  .anatomy{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+  .layer{
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:12px 14px;display:flex;gap:10px;align-items:flex-start;box-shadow:var(--shadow-sm);
+  }
+  .layer .l-icon{font-size:20px;flex-shrink:0;line-height:1;margin-top:2px}
+  .layer h3{font-size:14px;margin-bottom:2px}
+  .layer p{font-size:12px;line-height:1.4}
+
+  /* Stage detail rows */
+  .stage-detail{display:grid;grid-template-columns:1.35fr 1fr;gap:36px;align-items:center;flex:1}
+  .stage-block{margin-top:12px;display:grid}
+  .stage-row{display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--border)}
+  .stage-row:last-child{border-bottom:none}
+  .stage-row .key{font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--primary);text-transform:uppercase;letter-spacing:.14em;font-weight:700;padding-top:2px}
+  .stage-row .val{font-size:14px;color:var(--text);line-height:1.45}
+  .stage-row .val em{color:var(--muted);font-style:normal;font-size:11.5px;display:block;margin-top:2px}
+
+  .emotion-bar{margin-top:12px;padding:10px 14px;background:var(--primary-soft);border-left:3px solid var(--primary);border-radius:8px;display:flex;align-items:center;gap:10px}
+  .emotion-bar .e-icon{font-size:22px;line-height:1}
+  .emotion-bar .e-label{font-weight:700;font-size:14px;color:var(--text)}
+
+  /* GIF container */
+  .gif-frame{
+    background:var(--bg-soft);border:1px solid var(--border);border-radius:14px;
+    overflow:hidden;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+    position:relative;box-shadow:var(--shadow);width:100%;
+  }
+  .gif-frame.wide{aspect-ratio:16/6}
+  .gif-frame img{width:100%;height:100%;object-fit:cover;display:block}
+  .gif-frame::after{
+    content:'GIF';position:absolute;bottom:6px;right:6px;
+    background:rgba(255,255,255,.9);padding:2px 6px;border-radius:5px;
+    font-size:8px;letter-spacing:.18em;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-weight:700;
+    backdrop-filter:blur(6px);
+  }
+
+  /* Process steps */
+  .steps{display:grid;gap:8px;margin-top:14px}
+  .step{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;border-left:3px solid var(--primary);box-shadow:var(--shadow-sm)}
+  .step .step-num{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:var(--primary);line-height:1;min-width:24px}
+  .step h3{font-size:14px;margin-bottom:1px}
+  .step p{font-size:12px;line-height:1.35}
+
+  /* Lessons (takeaways) */
+  .lesson-list{display:grid;gap:10px;margin-top:16px}
+  .lesson{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;border-left:3px solid var(--primary);box-shadow:var(--shadow-sm)}
+  .lesson .num{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:var(--primary);line-height:1}
+  .lesson h3{font-size:15px;margin-bottom:2px}
+  .lesson p{font-size:12px;line-height:1.4}
+
+  /* Stats row */
+  .stat-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:var(--shadow-sm)}
+  .stat-card .stat-value{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+  .stat-card .stat-label{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.3}
+
+  /* === Viewport UI (not scaled) === */
+  .controls{
+    position:fixed;bottom:14px;right:20px;z-index:100;
+    display:flex;align-items:center;gap:4px;
+    background:var(--surface);backdrop-filter:blur(10px);
+    padding:4px;border-radius:99px;border:1px solid var(--border);box-shadow:var(--shadow);
+  }
+  .controls button{
+    width:32px;height:32px;border-radius:50%;border:none;
+    background:transparent;color:var(--text);font-size:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:all .2s;
+  }
+  .controls button:hover{background:var(--primary);color:#fff}
+  .counter{font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--muted);padding:0 10px;min-width:54px;text-align:center;font-weight:700}
+
+  .progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent));z-index:100;transition:width .4s ease}
+  .watermark{position:fixed;bottom:18px;left:20px;font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--muted);letter-spacing:.22em;text-transform:uppercase;z-index:50;font-weight:600}
+
+  .big-number{font-family:'Space Grotesk',sans-serif;font-size:54px;font-weight:700;line-height:1;background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:16px}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="watermark">CJM · Methodology</div>
+
+<div class="stage">
+  <div class="deck" id="deck">
+
+  <!-- ========== SLIDE 1: TITLE ========== -->
+  <section class="slide active title-slide">
+    <span class="eyebrow" style="align-self:center">Presentation 1 of 2</span>
+    <h1>Customer Journey Map<br><span class="gradient-text">A Map of How Customers<br>Really Experience You</span></h1>
+    <p class="sub">What it is, what it shows, how to build one, and why it changes business decisions</p>
+    <div class="case-tag">CJM · Methodology · 10 min talk</div>
+  </section>
+
+  <!-- ========== SLIDE 2: WHAT IS CJM ========== -->
+  <section class="slide">
+    <span class="eyebrow">Chapter 01 — Definition</span>
+    <h2>What is a <span class="gradient-text">Customer Journey Map</span>?</h2>
+    <div class="grid-2">
+      <div>
+        <p class="lead" style="margin-bottom:14px">A visual story of <strong>every step</strong> a person takes with your brand — from the first time they hear about you, to the day they recommend you to a friend.</p>
+        <p style="margin-bottom:8px;color:var(--text-soft)">Every CJM answers three questions:</p>
+        <div class="grid-3">
+          <div class="card"><span class="icon">📍</span><h3>Where?</h3><p>Touchpoints — channels they use</p></div>
+          <div class="card"><span class="icon">⚡</span><h3>What?</h3><p>Actions — what they do</p></div>
+          <div class="card"><span class="icon">💭</span><h3>How?</h3><p>Emotions — how they feel</p></div>
+        </div>
+      </div>
+      <div class="gif-frame" style="max-width:360px;margin:0 auto">
+        <img src="https://media.giphy.com/media/Sb6fAlj2l6N5tPeyqd/giphy.gif" alt="Looking at map">
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 3: WHY CJM MATTERS ========== -->
+  <section class="slide">
+    <span class="eyebrow">Chapter 02 — Business value</span>
+    <h2>Why companies <span class="gradient-text">invest</span> in CJM</h2>
+    <div class="grid-2">
+      <div class="gif-frame" style="max-width:360px;margin:0 auto">
+        <img src="https://media.giphy.com/media/JpG2A9P3dPHXaTYrwu/giphy.gif" alt="Money rain">
+      </div>
+      <div>
+        <div class="lesson-list" style="margin-top:0">
+          <div class="lesson"><div class="num">01</div><div><h3>Find hidden friction</h3><p>Stop guessing where people drop off — see it on the map.</p></div></div>
+          <div class="lesson"><div class="num">02</div><div><h3>Align the team</h3><p>Marketing, sales, support, product — one shared picture.</p></div></div>
+          <div class="lesson"><div class="num">03</div><div><h3>Grow revenue</h3><p>Less drop-off → more conversions → more loyal customers.</p></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-value">+54%</div><div class="stat-label">higher marketing ROI for companies that map the journey<br>McKinsey, 2023</div></div>
+          <div class="stat-card"><div class="stat-value">73%</div><div class="stat-label">of customers say experience matters more than price<br>PwC</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 4: ANATOMY ========== -->
+  <section class="slide">
+    <span class="eyebrow">Chapter 03 — Structure</span>
+    <h2>The <span class="gradient-text">anatomy</span> of a journey map</h2>
+    <p class="lead" style="margin-bottom:4px">Every good CJM has 6 layers stacked along the customer's path. Without these, it's just a flowchart.</p>
+    <div class="grid-2-wide" style="margin-top:4px">
+      <div class="anatomy">
+        <div class="layer"><div class="l-icon">📱</div><div><h3>Channel</h3><p>Where they meet you — Instagram, email, store</p></div></div>
+        <div class="layer"><div class="l-icon">🎯</div><div><h3>Action</h3><p>What they do — click, sign up, watch, buy</p></div></div>
+        <div class="layer"><div class="l-icon">💭</div><div><h3>Thought</h3><p>What they're thinking — questions, doubts, hopes</p></div></div>
+        <div class="layer"><div class="l-icon">😊</div><div><h3>Emotion</h3><p>How they feel — curious, frustrated, proud</p></div></div>
+        <div class="layer"><div class="l-icon">❌</div><div><h3>Pain point</h3><p>What stops or annoys them — the friction</p></div></div>
+        <div class="layer"><div class="l-icon">✅</div><div><h3>Opportunity</h3><p>How you can fix it — the action item</p></div></div>
+      </div>
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/1RdYPNRnsYajJ0PGYo/giphy.gif" alt="Blueprint">
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 5: 5 STAGES OVERVIEW ========== -->
+  <section class="slide">
+    <span class="eyebrow">Chapter 04 — The 5 stages</span>
+    <h2>Every journey has <span class="gradient-text">5 stages</span></h2>
+    <p class="lead">From a stranger who never heard of you, to a fan who tells everyone:</p>
+    <div class="stages">
+      <div class="stage-cell"><div class="num">STAGE 1</div><div class="emoji">👀</div><div class="name">Awareness</div><div class="one-liner">They discover you exist</div></div>
+      <div class="stage-cell"><div class="num">STAGE 2</div><div class="emoji">🤔</div><div class="name">Consideration</div><div class="one-liner">They evaluate the fit</div></div>
+      <div class="stage-cell"><div class="num">STAGE 3</div><div class="emoji">💪</div><div class="name">Decision</div><div class="one-liner">They commit internally</div></div>
+      <div class="stage-cell"><div class="num">STAGE 4</div><div class="emoji">💳</div><div class="name">Action</div><div class="one-liner">They buy or sign up</div></div>
+      <div class="stage-cell"><div class="num">STAGE 5</div><div class="emoji">❤️</div><div class="name">Loyalty</div><div class="one-liner">They stay & refer</div></div>
+    </div>
+    <p style="text-align:center;margin-top:32px;font-size:14px;color:var(--muted);font-style:italic">In the next 5 slides, we'll go deep into each stage — what to map, what customers feel, and how to spot opportunities.</p>
+  </section>
+
+  <!-- ========== SLIDE 6: STAGE 1 AWARENESS ========== -->
+  <section class="slide">
+    <span class="eyebrow">Stage 01 of 05 — 👀 Awareness</span>
+    <h2>"Wait... <span class="gradient-text">what is this</span>?"</h2>
+    <div class="stage-detail">
+      <div>
+        <p class="lead">The customer becomes aware your brand exists. They don't know what you do yet — they only know you exist.</p>
+        <div class="stage-block">
+          <div class="stage-row"><div class="key">Common channels</div><div class="val">Ads · Social · SEO · Word of mouth · PR</div></div>
+          <div class="stage-row"><div class="key">Customer thought</div><div class="val">"What is this? Is it real?"</div></div>
+          <div class="stage-row"><div class="key">What to map</div><div class="val">Hook quality, channel mix, first 5 seconds<em>What grabs them — and what scrolls past</em></div></div>
+          <div class="stage-row"><div class="key">Key metric</div><div class="val">Reach · CTR · Cost per click</div></div>
+        </div>
+        <div class="emotion-bar">
+          <div class="e-icon">🤔</div>
+          <div class="e-label">Typical emotion: Curious + skeptical</div>
+        </div>
+      </div>
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/eJkJbk0sghwembscPd/giphy.gif" alt="Scrolling phone">
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 7: STAGE 2 CONSIDERATION ========== -->
+  <section class="slide">
+    <span class="eyebrow">Stage 02 of 05 — 🤔 Consideration</span>
+    <h2>"Could this <span class="gradient-text">work for me</span>?"</h2>
+    <div class="stage-detail">
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/EClkor8zYeOvs9StMN/giphy.gif" alt="Shocked surprised">
+      </div>
+      <div>
+        <p class="lead">They engage deeper. They compare you with others. They look for proof you're not a scam and that you can actually solve their problem.</p>
+        <div class="stage-block">
+          <div class="stage-row"><div class="key">Common channels</div><div class="val">Website · Reviews · Demo · Free trial · Comparison pages</div></div>
+          <div class="stage-row"><div class="key">Customer thought</div><div class="val">"Looks interesting. But is it really for me?"</div></div>
+          <div class="stage-row"><div class="key">What to map</div><div class="val">Trust signals, social proof, clarity of value<em>How quickly do they "get" what you do?</em></div></div>
+          <div class="stage-row"><div class="key">Key metric</div><div class="val">Time on site · Demo signups · Engagement</div></div>
+        </div>
+        <div class="emotion-bar" style="background:var(--success-soft);border-left-color:var(--success)">
+          <div class="e-icon">😮</div>
+          <div class="e-label">Typical emotion: Interested + still doubting</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 8: STAGE 3 DECISION ========== -->
+  <section class="slide">
+    <span class="eyebrow">Stage 03 of 05 — 💪 Decision</span>
+    <h2>"I think this is <span class="gradient-text">the one</span>"</h2>
+    <div class="stage-detail">
+      <div>
+        <p class="lead">The customer commits internally. They've narrowed the choice. Now they're looking for the final reasons to pull the trigger — or to back out.</p>
+        <div class="stage-block">
+          <div class="stage-row"><div class="key">Common channels</div><div class="val">Pricing page · Sales call · Testimonials · Final FAQ</div></div>
+          <div class="stage-row"><div class="key">Customer thought</div><div class="val">"Almost ready. Just need one more reason."</div></div>
+          <div class="stage-row"><div class="key">What to map</div><div class="val">Decision drivers, objections, hesitation points<em>What stops them at the very last second?</em></div></div>
+          <div class="stage-row"><div class="key">Key metric</div><div class="val">Pricing-page conversion · Cart-add rate</div></div>
+        </div>
+        <div class="emotion-bar">
+          <div class="e-icon">💪</div>
+          <div class="e-label">Typical emotion: Confident — but anxious</div>
+        </div>
+      </div>
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/qTXQVE5hunGRMsfsTZ/giphy.gif" alt="Clock ticking">
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 9: STAGE 4 ACTION ========== -->
+  <section class="slide">
+    <span class="eyebrow">Stage 04 of 05 — 💳 Action</span>
+    <h2>"Take my <span class="gradient-text">money</span>"</h2>
+    <div class="stage-detail">
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/mD4Z5Iz80f0Kv1vC5H/giphy.gif" alt="Take my money">
+      </div>
+      <div>
+        <p class="lead">The customer buys, signs up, books. Most companies celebrate here. This is also where the most preventable money is lost.</p>
+        <div class="stage-block">
+          <div class="stage-row"><div class="key">Common channels</div><div class="val">Checkout · Signup form · Payment · Confirmation</div></div>
+          <div class="stage-row"><div class="key">Customer thought</div><div class="val">"OK, doing it. Please don't break."</div></div>
+          <div class="stage-row"><div class="key">What to map</div><div class="val">Form friction, payment errors, abandonment<em>Every extra field costs you customers</em></div></div>
+          <div class="stage-row"><div class="key">Key metric</div><div class="val">Checkout completion · Payment success rate</div></div>
+        </div>
+        <div class="emotion-bar" style="background:var(--success-soft);border-left-color:var(--success)">
+          <div class="e-icon">🎉</div>
+          <div class="e-label">Typical emotion: Excited + slightly nervous</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 10: STAGE 5 LOYALTY ========== -->
+  <section class="slide">
+    <span class="eyebrow">Stage 05 of 05 — ❤️ Loyalty</span>
+    <h2>From customer to <span class="gradient-text">ambassador</span></h2>
+    <div class="stage-detail">
+      <div>
+        <p class="lead">The journey doesn't end at "buy". A loyal customer comes back, spends more, and brings friends. This is where the real revenue lives.</p>
+        <div class="stage-block">
+          <div class="stage-row"><div class="key">Common channels</div><div class="val">Email · App · Community · Referral · Support</div></div>
+          <div class="stage-row"><div class="key">Customer thought</div><div class="val">"This was good. I should tell someone."</div></div>
+          <div class="stage-row"><div class="key">What to map</div><div class="val">Repeat use, NPS, referral triggers, churn risk<em>Loyalty is built — or broken — in the first 30 days</em></div></div>
+          <div class="stage-row"><div class="key">Key metric</div><div class="val">Retention · NPS · Referrals · Lifetime value</div></div>
+        </div>
+        <div class="emotion-bar" style="background:var(--success-soft);border-left-color:var(--success)">
+          <div class="e-icon">❤️</div>
+          <div class="e-label">Typical emotion: Belonging + pride</div>
+        </div>
+      </div>
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/XJWu2WsR5JnOjVUWed/giphy.gif" alt="High five">
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 11: HOW TO BUILD ONE ========== -->
+  <section class="slide">
+    <span class="eyebrow">Chapter 05 — Practice</span>
+    <h2>How to <span class="gradient-text">build one</span> — 5 steps</h2>
+    <div class="grid-2-wide" style="margin-top:8px">
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div><h3>Pick a real persona</h3><p>One specific customer. Not "everyone".</p></div></div>
+        <div class="step"><div class="step-num">2</div><div><h3>List every touchpoint</h3><p>Walk through the journey from their eyes — every channel they hit.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div><h3>Talk to real customers</h3><p>5 interviews beat 50 assumptions. Ask: where did you struggle?</p></div></div>
+        <div class="step"><div class="step-num">4</div><div><h3>Map emotions + pain points</h3><p>Mark each step with the feeling and the friction.</p></div></div>
+        <div class="step"><div class="step-num">5</div><div><h3>Find quick wins</h3><p>Pick the 3 biggest frictions. Fix one this week.</p></div></div>
+      </div>
+      <div class="gif-frame" style="max-width:320px;margin:0 auto">
+        <img src="https://media.giphy.com/media/JRutDKWQsKb78HNZCS/giphy.gif" alt="Construction hammer">
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SLIDE 12: KEY TAKE-AWAYS ========== -->
+  <section class="slide">
+    <span class="eyebrow">Chapter 06 — Take-aways</span>
+    <h2>3 things to <span class="gradient-text">remember</span></h2>
+    <div class="grid-2">
+      <div>
+        <div class="lesson-list">
+          <div class="lesson"><div class="num">01</div><div><h3>Map = compass</h3><p>You can't improve what you can't see. The CJM makes the invisible visible.</p></div></div>
+          <div class="lesson"><div class="num">02</div><div><h3>Emotions beat features</h3><p>People remember how you made them feel — not your feature list.</p></div></div>
+          <div class="lesson"><div class="num">03</div><div><h3>A CJM is never finished</h3><p>Customers change. Channels change. Your map should change too.</p></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="gif-frame" style="max-width:320px;margin:0 auto">
+          <img src="https://media.giphy.com/media/2sddCIZRYfiPlNeLZn/giphy.gif" alt="Mind blown">
+        </div>
+        <div style="text-align:center">
+          <div class="big-number">END</div>
+          <p style="margin-top:4px;color:var(--muted);font-size:13px">Next → AI × CJM (Presentation 2)</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </div>
+</div>
+
+<div class="controls">
+  <button id="prev" title="Previous (←)">←</button>
+  <span class="counter" id="counter">1 / 12</span>
+  <button id="next" title="Next (→)">→</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  let current = 0;
+  const total = slides.length;
+
+  function show(i){
+    if(i<0||i>=total) return;
+    slides[current].classList.remove('active');
+    current = i;
+    slides[current].classList.add('active');
+    counter.textContent = `${current+1} / ${total}`;
+    progress.style.width = `${((current+1)/total)*100}%`;
+  }
+
+  /* === Scale canvas to viewport (preserves 16:9, no content overflow) === */
+  function fit(){
+    const pad = 8; /* breathing room */
+    const s = Math.min(
+      (window.innerWidth - pad) / 1280,
+      (window.innerHeight - pad) / 720
+    );
+    document.documentElement.style.setProperty('--scale', s);
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  document.getElementById('prev').addEventListener('click',()=>show(current-1));
+  document.getElementById('next').addEventListener('click',()=>show(current+1));
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown') show(current+1);
+    if(e.key==='ArrowLeft'||e.key==='PageUp') show(current-1);
+    if(e.key==='Home') show(0);
+    if(e.key==='End') show(total-1);
+  });
+
+  progress.style.width = `${(1/total)*100}%`;
+</script>
+
+</body>
+</html>
